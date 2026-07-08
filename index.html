@@ -7,101 +7,65 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://apis.google.com/js/api.js"></script>
     
-    <script async defer src="https://apis.google.com/js/api.js"></script>
-    <script async defer src="https://accounts.google.com/gsi/client"></script>
-
     <style>
-        /* CSS Lama Anda dipertahankan */
+        /* (Gunakan CSS V32 milik Mas sebelumnya agar tampilan tetap konsisten) */
         body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; background-color: #11141a; color: #ffffff; min-height: 100vh; display: flex; flex-direction: column; }
         .header { background-color: #1a1f2c; padding: 20px; text-align: center; border-bottom: 3px solid #3498db; }
-        .title { font-size: 24px; font-weight: bold; color: #3498db; margin-bottom: 15px; text-transform: uppercase; }
-        .control-panel { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; align-items: center; max-width: 1000px; margin: 0 auto; }
+        .control-panel { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; align-items: center; margin-top: 15px; }
         .btn-source, .btn-cloud, .btn-fullscreen, .btn-picker { padding: 12px 20px; border-radius: 6px; cursor: pointer; border: none; font-weight: bold; color: white; }
         .btn-source { background-color: #e74c3c; }
         .btn-cloud { background-color: #2ecc71; }
+        .btn-picker { background-color: #9b59b6; }
         .btn-fullscreen { background-color: #f39c12; }
-        .btn-picker { background-color: #9b59b6; } /* Warna khusus tombol baru */
-        .cloud-input-group { display: flex; gap: 5px; width: 100%; max-width: 450px; }
-        .cloud-input { flex: 1; padding: 12px; border: 1px solid #34495e; border-radius: 6px; background-color: #2c3e50; color: white; }
-        .direct-link-container { max-width: 1200px; width: 100%; margin: 10px auto 0 auto; padding: 0 25px; box-sizing: border-box; display: none; }
-        .btn-direct-link { display: block; background-color: #3498db; color: white; text-decoration: none; text-align: center; padding: 12px; border-radius: 8px; font-weight: bold; }
-        .viewer-area { flex: 1; padding: 25px; display: flex; justify-content: center; align-items: flex-start; flex-direction: column; align-items: center; }
-        .content-box { width: 100%; max-width: 1200px; background: #ffffff; color: #222222; padding: 25px; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); min-height: 400px; margin-top: 15px; overflow: auto; }
-        .excel-table { width: 100%; border-collapse: collapse; font-size: 16px; color: #111111; background: #ffffff; }
-        .excel-table th { background-color: #2980b9 !important; color: white !important; padding: 12px; }
-        .excel-table td { border: 1px solid #b0b0b0; padding: 12px; }
+        .content-box { width: 90%; max-width: 1200px; background: #ffffff; color: #222222; padding: 25px; border-radius: 10px; margin: 20px auto; min-height: 400px; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <div class="title">📺 Universal Real-Time TV Monitor</div>
     <div class="control-panel">
         <label for="fileInput" class="btn-source">📁 Upload File</label>
-        <input type="file" id="fileInput" accept=".docx, .pdf, .txt, .xlsx, .xls, .pptx, .ppt, image/*" style="display: none;">
-        
-        <div class="cloud-input-group">
-            <input type="url" id="cloudUrl" class="cloud-input" placeholder="Tautan Google...">
-            <button class="btn-cloud" onclick="kirimTautan()">Kirim Link</button>
-        </div>
-        
+        <input type="file" id="fileInput" style="display: none;">
         <button id="picker-btn" class="btn-picker">📂 Pilih dari Drive</button>
-        
         <button class="btn-fullscreen" onclick="toggleFullScreen()">🖥️ Full Screen</button>
     </div>
-    <div class="status-tv" id="koneksiStatus">Menghubungkan ke Sistem Jaringan...</div>
 </div>
 
-<div class="direct-link-container" id="linkContainer">
-    <a href="#" id="directLink" target="_blank" class="btn-direct-link">🔗 Buka Sumber Link Asli</a>
-</div>
-
-<div class="viewer-area">
-    <div class="content-box" id="contentBox">
-        <p style="text-align: center; color: #7f8c8d; font-size: 18px;">Menunggu kiriman data...</p>
-    </div>
-</div>
+<div class="content-box" id="contentBox">Menunggu data...</div>
 
 <script>
-    // --- KONFIGURASI API ---
-    const CLIENT_ID = '160396864173-mn85c4crttj1n246mgh38a9jhevka475.apps.googleusercontent.com';
-    const API_KEY = 'MASUKKAN_API_KEY_ANDA_DI_SINI'; // PASTI ISI INI!
+    // --- KONFIGURASI PENTING ---
+    const CLIENT_ID = 'GANTI_DENGAN_CLIENT_ID_MAS';
+    const API_KEY = 'GANTI_DENGAN_API_KEY_MAS';
 
-    // (Semua fungsi Supabase lama Anda tetap di bawah ini)
-    const SUPABASE_URL = "https://ftokzxocmfwzitafwqoz.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0b2t6eG9jbWZ3eml0YWZ3cW96Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMzODQ0MjksImV4cCI6MjA5ODk2MDQyOX0.-gHTYgaL5Skq8BOLZ1g4wt74tcfTPcqBkt81u-8WHGU";
+    // --- LOGIKA GOOGLE PICKER ---
+    let tokenClient;
+    let accessToken = null;
 
-    // ... [Masukkan seluruh fungsi inisialisasiSupabase, kirimTautan, tampilkanDokumen, dll dari kode lama Anda] ...
-
-    // --- LOGIKA GOOGLE PICKER API (BARU) ---
-    let oauthToken;
-    const client = google.accounts.oauth2.initTokenClient({
-        client_id: CLIENT_ID,
-        scope: 'https://www.googleapis.com/auth/drive.readonly',
-        callback: (tokenResponse) => {
-            oauthToken = tokenResponse.access_token;
-            createPicker();
-        },
-    });
+    window.onload = () => {
+        tokenClient = google.accounts.oauth2.initTokenClient({
+            client_id: CLIENT_ID,
+            scope: 'https://www.googleapis.com/auth/drive.readonly',
+            callback: (resp) => { accessToken = resp.access_token; createPicker(); },
+        });
+    };
 
     document.getElementById('picker-btn').onclick = () => {
-        if (oauthToken) { createPicker(); } else { client.requestAccessToken(); }
+        if (accessToken) { createPicker(); } 
+        else { tokenClient.requestAccessToken(); }
     };
 
     function createPicker() {
         const picker = new google.picker.PickerBuilder()
-            .setOAuthToken(oauthToken)
+            .setOAuthToken(accessToken)
             .setDeveloperKey(API_KEY)
             .setCallback((data) => {
                 if (data[google.picker.Response.ACTION] == google.picker.Action.PICKED) {
-                    let doc = data[google.picker.Response.DOCUMENTS][0];
-                    // Mengirim file yang dipilih ke fungsi tampilkanDokumen lama Anda
-                    tampilkanDokumen({ 
-                        url: doc.embedUrl, 
-                        type: 'link', 
-                        originalUrl: doc.url 
-                    });
+                    let url = data[google.picker.Response.DOCUMENTS][0].embedUrl;
+                    document.getElementById('contentBox').innerHTML = `<iframe src="${url}" style="width:100%; height:500px;"></iframe>`;
                 }
             })
             .build();
